@@ -12,6 +12,15 @@ FLAGS = None
 log_dir = '/logdir'
 
 def main():
+  sv = tf.train.Supervisor(logdir=os.getcwd()+log_dir,
+          is_chief=is_chief,
+          save_model_secs=30)
+  gpu_options = tf.GPUOptions(allow_growth=True,
+          allocator_type="BFC",
+          visible_device_list="%d"%FLAGS.task_index)
+  config = tf.ConfigProto(gpu_options=gpu_options,
+          allow_soft_placement=True)
+
     # Server Setup
   cluster = tf.train.ClusterSpec({
         'ps':['localhost:2222'],
@@ -39,14 +48,7 @@ def main():
       opt = tf.train.GradientDescentOptimizer(.0001).minimize(loss)
 
   # Session
-  sv = tf.train.Supervisor(logdir=os.getcwd()+log_dir,
-          is_chief=is_chief,
-          save_model_secs=30)
-  gpu_options = tf.GPUOptions(allow_growth=True,
-          allocator_type="BFC",
-          visible_device_list="%d"%FLAGS.task_index)
-  config = tf.ConfigProto(gpu_options=gpu_options,
-          allow_soft_placement=True)
+
   sess = sv.prepare_or_wait_for_session(server.target,config=config)
   for i in range(1000):
    if sv.should_stop(): break
