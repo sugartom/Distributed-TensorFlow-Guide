@@ -17,26 +17,26 @@ def main():
         'ps':['localhost:2222'],
         'worker':['localhost:2223','localhost:2224']
         }) #allows this node know about all other nodes
- if FLAGS.job_name == 'ps': #checks if parameter server
-  with tf.device('/cpu:0'):
-   server = tf.train.Server(cluster,
+  if FLAGS.job_name == 'ps': #checks if parameter server
+    with tf.device('/cpu:0'):
+     server = tf.train.Server(cluster,
             job_name="ps",
             task_index=FLAGS.task_index)
-   server.join()
- else:
-  is_chief = (FLAGS.task_index == 0) #checks if this is the chief node
-  server = tf.train.Server(cluster,job_name="worker",
+     server.join()
+  else:
+    is_chief = (FLAGS.task_index == 0) #checks if this is the chief node
+    server = tf.train.Server(cluster,job_name="worker",
      task_index=FLAGS.task_index,config=config)
-  # Graph
-  with tf.device('/gpu:0'):
-   a = tf.Variable(tf.truncated_normal(shape=[2]),dtype=tf.float32)
-   b = tf.Variable(tf.truncated_normal(shape=[2]),dtype=tf.float32)
-   c=a+b
+    # Graph
+    with tf.device('/gpu:0'):
+      a = tf.Variable(tf.truncated_normal(shape=[2]),dtype=tf.float32)
+      b = tf.Variable(tf.truncated_normal(shape=[2]),dtype=tf.float32)
+      c = a+b
 
-   target = tf.constant(100.,shape=[2],dtype=tf.float32)
-   loss = tf.reduce_mean(tf.square(c-target))
+      target = tf.constant(100.,shape=[2],dtype=tf.float32)
+      loss = tf.reduce_mean(tf.square(c-target))
   
-   opt = tf.train.GradientDescentOptimizer(.0001).minimize(loss)
+      opt = tf.train.GradientDescentOptimizer(.0001).minimize(loss)
 
   # Session
   sv = tf.train.Supervisor(logdir=os.getcwd()+log_dir,
